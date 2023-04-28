@@ -14,7 +14,11 @@ class UserManager(BaseUserManager):
     Manager for users.
     """
 
-    def create_user(self, email: str, password: str = None, **extra_fields) -> 'User':
+    def create_user(self,
+                    email: str,
+                    password: str = None,
+                    **extra_fields
+        ) -> 'User':
         """"
         Create and return a new user.
         """

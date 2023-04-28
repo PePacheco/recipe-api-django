@@ -18,7 +18,7 @@ class UserManager(BaseUserManager):
                     email: str,
                     password: str = None,
                     **extra_fields
-        ) -> 'User':
+                    ) -> 'User':
         """"
         Create and return a new user.
         """

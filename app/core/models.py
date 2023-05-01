@@ -13,7 +13,6 @@ class UserManager(BaseUserManager):
     """"
     Manager for users.
     """
-
     def create_user(self,
                     email: str,
                     password: str = None,

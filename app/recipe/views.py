@@ -41,6 +41,7 @@ class TagViewSet(
     mixins.ListModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
+    mixins.CreateModelMixin,
     viewsets.GenericViewSet
 ):
     """ViewSet for tags."""
@@ -52,3 +53,7 @@ class TagViewSet(
     def get_queryset(self) -> list[Tag]:
         """Filter queryset for authenticated user."""
         return self.queryset.filter(user=self.request.user).order_by('-name')
+
+    def perform_create(self, serializer):
+        """Create a new recipe."""
+        serializer.save(user=self.request.user)

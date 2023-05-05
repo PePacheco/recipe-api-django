@@ -11,9 +11,7 @@ from django.contrib.auth.models import (
 
 
 class UserManager(BaseUserManager):
-    """"
-    Manager for users.
-    """
+    """"Manager for users."""
     def create_user(self,
                     email: str,
                     password: str = None,
@@ -39,9 +37,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    """"
-    User in the system.
-    """
+    """"User in the system."""
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
@@ -64,6 +60,7 @@ class Recipe(models.Model):
     price = models.DecimalField(max_digits=5, decimal_places=2)
     link = models.CharField(max_length=255, blank=True)
     tags = models.ManyToManyField('Tag')
+    ingredients = models.ManyToManyField('Ingredient')
 
     def __str__(self) -> str:
         return self.title
@@ -71,6 +68,18 @@ class Recipe(models.Model):
 
 class Tag(models.Model):
     """Tag for filtering recipes."""
+    name = models.CharField(max_length=255)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Ingredient(models.Model):
+    """Ingredient for recipes."""
     name = models.CharField(max_length=255)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

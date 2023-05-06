@@ -67,3 +67,7 @@ class IngredientViewSet(BaseRecipeAttrViewSet):
     """ViewSet for ingredients"""
     serializer_class = serializers.IngredientSerializer
     queryset = Ingredient.objects.all()
+
+    def perform_create(self, serializer):
+        """Create a new tag."""
+        serializer.save(user=self.request.user)

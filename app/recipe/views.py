@@ -7,6 +7,9 @@ from rest_framework import (
 )
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import HttpRequest
+from rest_framework.response import Response
+from rest_framework import status
 
 from core.models import (
     Recipe,
@@ -58,9 +61,26 @@ class TagViewSet(BaseRecipeAttrViewSet):
     serializer_class = serializers.TagSerializer
     queryset = Tag.objects.all()
 
-    def perform_create(self, serializer):
+    def create(self, request: HttpRequest, *args, **kwargs):
         """Create a new tag."""
-        serializer.save(user=self.request.user)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tag = serializer.validated_data
+        obj, created = Tag.objects.get_or_create(
+            user=self.request.user,
+            name=tag['name'],
+        )
+        if created:
+            serializer.save(user=self.request.user)
+            return Response(
+                {'message': 'Tag created successfully'},
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            {'message': 'Tag already exists'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class IngredientViewSet(BaseRecipeAttrViewSet):
@@ -68,6 +88,23 @@ class IngredientViewSet(BaseRecipeAttrViewSet):
     serializer_class = serializers.IngredientSerializer
     queryset = Ingredient.objects.all()
 
-    def perform_create(self, serializer):
-        """Create a new tag."""
-        serializer.save(user=self.request.user)
+    def create(self, request: HttpRequest, *args, **kwargs):
+        """Create a new ingredient."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        ingredient = serializer.validated_data
+        obj, created = Ingredient.objects.get_or_create(
+            user=self.request.user,
+            name=ingredient['name'],
+        )
+        if created:
+            serializer.save(user=self.request.user)
+            return Response(
+                {'message': 'Ingredient created successfully'},
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            {'message': 'Ingredient already exists'},
+            status=status.HTTP_400_BAD_REQUEST
+        )

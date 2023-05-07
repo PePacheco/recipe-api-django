@@ -66,11 +66,11 @@ class TagViewSet(BaseRecipeAttrViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         tag = serializer.validated_data
-        obj, created = Tag.objects.get_or_create(
+        tag_exists = Tag.objects.filter(
             user=self.request.user,
-            name=tag['name'],
-        )
-        if created:
+            name__iexact=tag['name']
+        ).exists()
+        if not tag_exists:
             serializer.save(user=self.request.user)
             return Response(
                 {'message': 'Tag created successfully'},
@@ -93,11 +93,11 @@ class IngredientViewSet(BaseRecipeAttrViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         ingredient = serializer.validated_data
-        obj, created = Ingredient.objects.get_or_create(
+        ingredient_exists = Ingredient.objects.filter(
             user=self.request.user,
-            name=ingredient['name'],
-        )
-        if created:
+            name__iexact=ingredient['name']
+        ).exists()
+        if not ingredient_exists:
             serializer.save(user=self.request.user)
             return Response(
                 {'message': 'Ingredient created successfully'},

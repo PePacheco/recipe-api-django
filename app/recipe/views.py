@@ -127,8 +127,8 @@ class TagViewSet(BaseRecipeAttrViewSet):
 
     def destroy(self, request, *args, **kwargs):
         """Delete a tag."""
-        instance = self.get_object()
-        self.perform_destroy(instance)
+        instance: Tag = self.get_object()
+        instance.delete()
         return Response(
             {'message': 'Tag deleted successfully'},
             status=status.HTTP_204_NO_CONTENT

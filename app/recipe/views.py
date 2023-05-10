@@ -60,7 +60,6 @@ class BaseRecipeAttrViewSet(
     mixins.ListModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
-    mixins.CreateModelMixin,
     viewsets.GenericViewSet
 ):
     """Base ViewSet for recipe attributes."""
@@ -76,15 +75,23 @@ class TagViewSet(BaseRecipeAttrViewSet):
     serializer_class = serializers.TagSerializer
     queryset = Tag.objects.all()
 
+    def _instance_exists(
+        self,
+        request: HttpRequest,
+        serializer: serializers.TagSerializer
+    ) -> bool:
+        """Check if the instance exists."""
+        serializer.is_valid(raise_exception=True)
+        tag = serializer.validated_data
+        return Tag.objects.filter(
+            user=request.user,
+            name__iexact=tag['name']
+        ).exists()
+
     def create(self, request: HttpRequest, *args, **kwargs):
         """Create a new tag."""
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        tag = serializer.validated_data
-        tag_exists = Tag.objects.filter(
-            user=self.request.user,
-            name__iexact=tag['name']
-        ).exists()
+        tag_exists = self._instance_exists(request, serializer)
         if not tag_exists:
             serializer.save(user=self.request.user)
             return Response(
@@ -105,13 +112,7 @@ class TagViewSet(BaseRecipeAttrViewSet):
             data=request.data,
             partial=True
         )
-        serializer.is_valid(raise_exception=True)
-        tag = serializer.validated_data
-        tag_exists = Tag.objects.filter(
-            user=self.request.user,
-            name__iexact=tag['name']
-        ).exists()
-
+        tag_exists = self._instance_exists(request, serializer)
         if not tag_exists:
             serializer.save()
             return Response(
@@ -124,21 +125,38 @@ class TagViewSet(BaseRecipeAttrViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    def destroy(self, request, *args, **kwargs):
+        """Delete a tag."""
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(
+            {'message': 'Tag deleted successfully'},
+            status=status.HTTP_204_NO_CONTENT
+        )
+
 
 class IngredientViewSet(BaseRecipeAttrViewSet):
     """ViewSet for ingredients"""
     serializer_class = serializers.IngredientSerializer
     queryset = Ingredient.objects.all()
 
+    def _instance_exists(
+        self,
+        request: HttpRequest,
+        serializer: serializers.IngredientSerializer
+    ) -> bool:
+        """Check if the instance exists."""
+        serializer.is_valid(raise_exception=True)
+        tag = serializer.validated_data
+        return Ingredient.objects.filter(
+            user=request.user,
+            name__iexact=tag['name']
+        ).exists()
+
     def create(self, request: HttpRequest, *args, **kwargs):
         """Create a new ingredient."""
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        ingredient = serializer.validated_data
-        ingredient_exists = Ingredient.objects.filter(
-            user=self.request.user,
-            name__iexact=ingredient['name']
-        ).exists()
+        ingredient_exists = self._instance_exists(request, serializer)
         if not ingredient_exists:
             serializer.save(user=self.request.user)
             return Response(
@@ -159,12 +177,7 @@ class IngredientViewSet(BaseRecipeAttrViewSet):
             data=request.data,
             partial=True
         )
-        serializer.is_valid(raise_exception=True)
-        ingredient = serializer.validated_data
-        ingredient_exists = Ingredient.objects.filter(
-            user=self.request.user,
-            name__iexact=ingredient['name']
-        ).exists()
+        ingredient_exists = self._instance_exists(request, serializer)
         if not ingredient_exists:
             serializer.save()
             return Response(

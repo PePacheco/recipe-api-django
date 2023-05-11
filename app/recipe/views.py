@@ -59,12 +59,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         tags = self.request.query_params.get('tags')
         ingredients = self.request.query_params.get('ingredients')
         queryset = self.queryset
-        print(tags, ingredients)
 
         if tags:
             tag_ids = self._params_to_ints(tags)
             queryset = queryset.filter(tags__id__in=tag_ids)
-            print(queryset.all())
             # syntax for filtering by foreign key
 
         if ingredients:
@@ -101,6 +99,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                'assigned_only',
+                OpenApiTypes.INT, enum=[0, 1],
+                description='Filter only assigned results.'
+            )
+        ]
+    )
+)
 class BaseRecipeAttrViewSet(
     mixins.ListModelMixin,
     mixins.UpdateModelMixin,
@@ -112,7 +121,17 @@ class BaseRecipeAttrViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user).order_by('-name')
+        assigned_only: bool = bool(
+            int(self.request.query_params.get('assigned_only', 0))
+        )
+        queryset = self.queryset
+
+        if assigned_only:
+            queryset = queryset.filter(recipe__isnull=False)
+
+        return queryset.filter(
+            user=self.request.user
+        ).order_by('-name').distinct()
 
 
 class TagViewSet(BaseRecipeAttrViewSet):
@@ -140,7 +159,7 @@ class TagViewSet(BaseRecipeAttrViewSet):
         if not tag_exists:
             serializer.save(user=self.request.user)
             return Response(
-                {'message': 'Tag created successfully'},
+                serializer.data,
                 status=status.HTTP_201_CREATED
             )
 
@@ -161,7 +180,7 @@ class TagViewSet(BaseRecipeAttrViewSet):
         if not tag_exists:
             serializer.save()
             return Response(
-                {'message': 'Tag updated successfully'},
+                serializer.data,
                 status=status.HTTP_200_OK
             )
 
@@ -205,7 +224,7 @@ class IngredientViewSet(BaseRecipeAttrViewSet):
         if not ingredient_exists:
             serializer.save(user=self.request.user)
             return Response(
-                {'message': 'Ingredient created successfully'},
+                serializer.data,
                 status=status.HTTP_201_CREATED
             )
 
@@ -226,7 +245,7 @@ class IngredientViewSet(BaseRecipeAttrViewSet):
         if not ingredient_exists:
             serializer.save()
             return Response(
-                {'message': 'Ingredient updated successfully'},
+                serializer.data,
                 status=status.HTTP_200_OK
             )
 

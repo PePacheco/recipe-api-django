@@ -359,7 +359,7 @@ class PrivateRecipeAPITests(TestCase):
         serializer3 = RecipeSerializer(recipe3)
 
         params = {'tags': f'{tag1.id},{tag2.id}'}
-        res = self.client.get(detail_url(), params)
+        res = self.client.get(RECIPES_URL, params)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn(serializer1.data, res.data)
         self.assertIn(serializer2.data, res.data)
@@ -380,7 +380,7 @@ class PrivateRecipeAPITests(TestCase):
         serializer3 = RecipeSerializer(recipe3)
 
         params = {'ingredients': f'{ingredient1.id},{ingredient2.id}'}
-        res = self.client.get(detail_url(), params)
+        res = self.client.get(RECIPES_URL, params)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn(serializer1.data, res.data)
         self.assertIn(serializer2.data, res.data)
